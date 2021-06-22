@@ -16,6 +16,7 @@ joystick = None
 
 # functions
 def setSpeed(pos: MotorPos, throttle: float):
+    global motors
     motors.continuous_servo[motorConfig[pos]].throttle = throttle * maxThrottle
 
 
@@ -42,10 +43,10 @@ def run():
 
     iSum, iDiff = inputX + inputY, inputY - inputX
 
-    setSpeed(MotorPos.FRONT_LEFT, iSum if isMechanum else iDiff)
+    setSpeed(MotorPos.FRONT_LEFT,  iSum if isMechanum else iDiff)
     setSpeed(MotorPos.FRONT_RIGHT, iSum)
-    setSpeed(MotorPos.BACK_RIGHT, iDiff if isMechanum else iSum)
-    setSpeed(MotorPos.BACK_LEFT, iDiff)
+    setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMechanum else iSum)
+    setSpeed(MotorPos.BACK_LEFT,   iDiff)
 
 
 def main():
@@ -59,7 +60,7 @@ def main():
             # attempt to run
             run()
 
-        except object as e:
+        except BaseException as e:
             # catch real errors and print to stderr
             if not isinstance(e, StopRun):
                 sys.stderr.write(str(e))
@@ -69,7 +70,7 @@ def main():
         # ensure wait between execution cycles
         time.sleep(10)
 
-    # deinit
+    # de-init
     deinit()
 
 if __name__ == '__main__':
