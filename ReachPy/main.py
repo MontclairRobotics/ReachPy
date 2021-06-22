@@ -1,32 +1,51 @@
+# imports
 import sys
 import inputs
+from typing import Optional
 from busio import I2C
 from adafruit_pca9685 import *
 from adafruit_servokit import *
-
-i2c = None
-servos = None
+from consts import *
 
 
+# globals
+i2c: Optional[I2C] = None
+motors: Optional[ServoKit] = None
+joystick = None
+
+
+# functions
+def setSpeed(pos: MotorPos, throttle: float):
+    motors.continuous_servo[motorConfig[pos]].throttle = throttle * maxThrottle
+
+
+# execution
 class StopRun(BaseException):
     pass
 
 def init():
     #globals
-    global i2c, servos
+    global i2c, motors, joystick
 
     #initialize
     i2c = I2C(board.SCL, board.SDA)
-    servos = ServoKit(channels=16, i2c=i2c)
+    motors = ServoKit(channels=16, i2c=i2c)
 
 
 def deinit():
     pass
 
 def run():
-    pass
 
+    isMechanum = True
+    inputX, inputY = []
 
+    iSum, iDiff = inputX + inputY, inputY - inputX
+
+    setSpeed(MotorPos.FRONT_LEFT, iSum if isMechanum else iDiff)
+    setSpeed(MotorPos.FRONT_RIGHT, iSum)
+    setSpeed(MotorPos.BACK_RIGHT, iDiff if isMechanum else iSum)
+    setSpeed(MotorPos.BACK_LEFT, iDiff)
 
 
 def main():
