@@ -44,7 +44,7 @@ def init():
     #initialize
     motors = ServoKit(channels=16)
     speedData = [list((0, 0, 0,)) for _ in range(motorCount)]
-    buttonStop = usb.core.find()
+    buttonStop = evdev.InputDevice(devicePath)
 
 
 def deinit():
