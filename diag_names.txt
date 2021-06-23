@@ -1,0 +1,5 @@
+event at 1624472676.409416, code 01, type 03, val 00 ::: absolute axis event at 1624472676.409416, ABS_Y 
+event at 1624472676.433418, code 00, type 03, val 255 ::: absolute axis event at 1624472676.433418, ABS_X 
+event at 1624472678.225699, code 01, type 03, val 127 ::: absolute axis event at 1624472678.225699, ABS_Y 
+event at 1624472678.249700, code 00, type 03, val 127 ::: absolute axis event at 1624472678.249700, ABS_X 
+`

@@ -65,5 +65,5 @@ def easeSpeed(speed_data: List[float]):
         speed_data[0] = new_val
         speed_data[1] = new_ds
 
-devicePath = 'dev/input/eventX'
+devicePath: str = 'dev/input/eventX'
 """Device path for input"""
