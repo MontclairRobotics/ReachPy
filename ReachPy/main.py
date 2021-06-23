@@ -1,24 +1,25 @@
 # imports
 import sys
-import inputs
+import evdev
 from typing import Optional, List
-from busio import I2C
 from adafruit_pca9685 import *
 from adafruit_servokit import *
 from consts import *
 
 
 # globals
-i2c: Optional[I2C] = None
 motors: Optional[ServoKit] = None
 speedData: List[List[float]] = []
 joystick = None
+buttonStop = None
+buttonTank = None
+buttonXtra = None
 
 
 # functions
 def setSpeed(pos: MotorPos, throttle: float):
     global motors, speedData
-    speedData[pos.value()][2] = throttle * maxThrottle
+    speedData[pos.value][2] = throttle * maxThrottle
 
 def updateSpeed(pos: MotorPos):
     global speedData
@@ -38,12 +39,12 @@ class StopRun(BaseException):
 
 def init():
     #globals
-    global i2c, motors, joystick, speedData
+    global motors, joystick, buttonStop, buttonTank, buttonXtra, speedData
 
     #initialize
-    i2c = I2C(board.SCL, board.SDA)
-    motors = ServoKit(channels=16, i2c=i2c)
+    motors = ServoKit(channels=16)
     speedData = [list((0, 0, 0,)) for _ in range(motorCount)]
+    buttonStop = usb.core.find()
 
 
 def deinit():
