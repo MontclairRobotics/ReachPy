@@ -5,7 +5,7 @@ from typing import Dict, Tuple, List
 
 def maxThrottle(fast: bool) -> float:
     if fast:
-        return 0.16
+        return 0.2
     else:
         return 0.1
 """The maximum throttle for the motor"""
