@@ -109,8 +109,8 @@ def run():
         iSum, iDiff = inputX + inputY, inputY - inputX
 
         if isMchn:
-            iSum *= abs(inputX) * 2 + 1
-            iDiff *= abs(inputX) * 2 + 1
+            iSum *= abs(inputX) * 4 + 1
+            iDiff *= abs(inputX) * 4 + 1
             iSum = clamp(iSum, -1, 1)
             iDiff = clamp(iDiff, -1, 1)
 
