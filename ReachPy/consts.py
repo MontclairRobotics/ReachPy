@@ -3,11 +3,11 @@ from evdev import AbsInfo
 from enum import IntEnum, unique
 from typing import Dict, Tuple, List
 
-def maxThrottle(slow: bool) -> float:
-    if slow:
-        return 0.09
+def maxThrottle(fast: bool) -> float:
+    if fast:
+        return 0.16
     else:
-        return 0.18
+        return 0.1
 """The maximum throttle for the motor"""
 
 motorCount: int = 4

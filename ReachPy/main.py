@@ -16,6 +16,17 @@ targetSpeeds: List[float] = []
 
 controller: Optional[InputDevice] = None
 
+isFast: bool = False
+isMchn: bool = False
+isStop: bool = False
+
+prsFast: bool = False
+prsMchn: bool = False
+prsStop: bool = False
+
+prevFast: bool = False
+prevMchn: bool = False
+prevStop: bool = False
 
 # functions
 def resetSpeeds():
@@ -63,13 +74,30 @@ def deinit():
     controller.ungrab()
     controller.close()
 
-def run():
+def handleInputs():
+    global isMchn, isFast, isStop, prsMchn, prsFast, prsStop, prevMchn, prevFast, prevStop
 
     active_buttons = controller.active_keys()
 
-    isMechanum = btn_1 in active_buttons
-    isStop = btn_2 in active_buttons
-    isSlow = btn_3 in active_buttons
+    prevMchn = prsMchn
+    prevStop = prsStop
+    prevFast = prsFast
+
+    prsMchn = btn_1 in active_buttons
+    prsStop = btn_2 in active_buttons
+    prsFast = btn_3 in active_buttons
+
+    if not prevStop and prsStop:
+        isStop = not isStop
+
+    if not prevMchn and prsMchn:
+        isMchn = not isMchn
+
+    if not prevFast and prsFast:
+        isFast = not isFast
+
+def run():
+    handleInputs()
 
     if isStop:
         resetSpeeds()
@@ -80,10 +108,13 @@ def run():
 
         iSum, iDiff = inputX + inputY, inputY - inputX
 
-        setSpeed(MotorPos.FRONT_LEFT,  iSum if isMechanum else iDiff, isSlow)
-        setSpeed(MotorPos.FRONT_RIGHT, iSum, isSlow)
-        setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMechanum else iSum, isSlow)
-        setSpeed(MotorPos.BACK_LEFT,   iDiff, isSlow)
+        iSum *= abs(inputX) + 1
+        iDiff *= abs(inputX) + 1
+
+        setSpeed(MotorPos.FRONT_LEFT, iSum if isMchn else iDiff, isFast)
+        setSpeed(MotorPos.FRONT_RIGHT, iSum, isFast)
+        setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMchn else iSum, isFast)
+        setSpeed(MotorPos.BACK_LEFT,   iDiff, isFast)
 
     updateSpeeds()
 
