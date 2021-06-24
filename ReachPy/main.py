@@ -9,23 +9,22 @@ from consts import *
 
 # globals
 motors: Optional[ServoKit] = None
-speedData: List[List[float]] = []
-joystick = None
-buttonStop = None
-buttonTank = None
-buttonXtra = None
+
+currentSpeeds: List[float] = []
+targetSpeeds: List[float] = []
+
+controller = None
 
 
 # functions
 def setSpeed(pos: MotorPos, throttle: float):
-    global motors, speedData
-    speedData[pos.value][2] = throttle * maxThrottle
+    targetSpeeds[pos.value] = throttle * maxThrottle
 
 def updateSpeed(pos: MotorPos):
-    global speedData
-    for i in range(len(speedData)):
-        easeSpeed(speed_data=speedData[i])
-        motors.continuous_servo[motorConfig[pos]].throttle = speedData[i][0]
+    global currentSpeeds, targetSpeeds
+    for i in range(motorCount):
+        currentSpeeds[i] = easeSpeed(currentSpeeds[i], targetSpeeds[i])
+        motors.continuous_servo[motorConfig[pos]].throttle = currentSpeeds[i]
 
 def updateSpeeds():
     updateSpeed(MotorPos.FRONT_LEFT)
@@ -39,12 +38,15 @@ class StopRun(BaseException):
 
 def init():
     #globals
-    global motors, joystick, buttonStop, buttonTank, buttonXtra, speedData
+    global motors, currentSpeeds, targetSpeeds, controller
 
     #initialize
     motors = ServoKit(channels=16)
-    speedData = [list((0, 0, 0,)) for _ in range(motorCount)]
-    buttonStop = evdev.InputDevice(devicePath)
+
+    currentSpeeds = list((0,) * motorCount)
+    targetSpeeds  = list((0,) * motorCount)
+
+    #controller = InputDevice(devicePath)
 
 
 def deinit():
