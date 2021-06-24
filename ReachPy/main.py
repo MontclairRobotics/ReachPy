@@ -108,7 +108,7 @@ def run():
 
         iSum, iDiff = inputX + inputY, inputY - inputX
 
-        if isMchn:
+        if isMchn and abs(inputX) >= 0.5:
             iSum *= abs(inputX) * 4 + 1
             iDiff *= abs(inputX) * 4 + 1
             iSum = clamp(iSum, -1, 1)
