@@ -71,6 +71,10 @@ def init():
 
 def deinit():
     global controller, motors
+
+    resetSpeeds()
+    updateSpeeds()
+
     controller.ungrab()
     controller.close()
 
@@ -109,8 +113,8 @@ def run():
         iSum, iDiff = inputX + inputY, inputY - inputX
 
         if isMchn and abs(inputY) <= 0.5:
-            iSum *= abs(inputX) * 4 + 1
-            iDiff *= abs(inputX) * 4 + 1
+            iSum *= abs(inputX) * 6 + 1
+            iDiff *= abs(inputX) * 6 + 1
             iSum = clamp(iSum, -1, 1)
             iDiff = clamp(iDiff, -1, 1)
 

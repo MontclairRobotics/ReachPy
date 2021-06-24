@@ -38,7 +38,7 @@ def clampMag(val: float, min_val: float, max_val: float) -> float:
     n = clamp(abs(val), min_val, max_val)
     return math.copysign(1, val) * n
 
-speedPreservationFactor: float = 3
+speedPreservationFactor: float = 8
 """A factor which controls how much the speeds are preserved after
    a call to ease"""
 
