@@ -138,7 +138,7 @@ def main():
             break
 
         # ensure wait between execution cycles
-        time.sleep(0.1)
+        time.sleep(0.02)
 
     # de-init
     deinit()
