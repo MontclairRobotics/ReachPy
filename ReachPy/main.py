@@ -94,8 +94,8 @@ def handleInputs():
     if not prevStop and prsStop:
         isStop = not isStop
 
-    if not prevMchn and prsMchn:
-        isMchn = not isMchn
+    #if not prevMchn and prsMchn:
+    #    isMchn = not isMchn
 
     if not prevFast and prsFast:
         isFast = not isFast
