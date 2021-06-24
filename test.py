@@ -9,7 +9,15 @@ devNum = 4
 devP = '/dev/input/event' + str(devNum)
 dev = InputDevice(devP)
 
-for event in dev.read_loop():
-    if event.type == ecodes.EV_SYN:
-        continue
-    print(str(event) + ' ::: ' + str(categorize(event)))
+btn_1 = 288
+btn_2 = 290
+btn_3 = 289
+
+x_ax = 0
+y_ax = 1
+
+while True:
+    tmp = dev.absinfo(1)
+    if tmp:
+        print(type(tmp))
+        print(tmp)

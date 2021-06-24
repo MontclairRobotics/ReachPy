@@ -1,6 +1,3 @@
-if __name__ != '__main__':
-    exit()
-
 import matplotlib.pyplot as plt
 from consts import *
 from random import random

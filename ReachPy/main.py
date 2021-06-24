@@ -1,6 +1,7 @@
 # imports
 import sys
 import evdev
+from evdev import InputDevice
 from typing import Optional, List
 from adafruit_pca9685 import *
 from adafruit_servokit import *
@@ -13,18 +14,27 @@ motors: Optional[ServoKit] = None
 currentSpeeds: List[float] = []
 targetSpeeds: List[float] = []
 
-controller = None
+controller: Optional[InputDevice] = None
 
 
 # functions
-def setSpeed(pos: MotorPos, throttle: float):
-    targetSpeeds[pos.value] = throttle * maxThrottle
+def resetSpeeds():
+    global currentSpeeds, targetSpeeds
+    currentSpeeds = [0] * motorCount
+    targetSpeeds = [0] * motorCount
+
+def setSpeed(pos: MotorPos, throttle: float, slow: bool):
+    targetSpeeds[pos.value] = throttle * maxThrottle(slow)
 
 def updateSpeed(pos: MotorPos):
     global currentSpeeds, targetSpeeds
-    for i in range(motorCount):
-        currentSpeeds[i] = easeSpeed(currentSpeeds[i], targetSpeeds[i])
-        motors.continuous_servo[motorConfig[pos]].throttle = currentSpeeds[i]
+    currentSpeeds[pos.value] = easeSpeed(currentSpeeds[pos.value], targetSpeeds[pos.value])
+    
+    mul = -1
+    if pos == MotorPos.FRONT_LEFT or pos == MotorPos.BACK_LEFT:
+        mul = 1
+    
+    motors.continuous_servo[motorConfig[pos]].throttle = fixServoOuchie(mul * currentSpeeds[pos.value])
 
 def updateSpeeds():
     updateSpeed(MotorPos.FRONT_LEFT)
@@ -38,31 +48,42 @@ class StopRun(BaseException):
 
 def init():
     #globals
-    global motors, currentSpeeds, targetSpeeds, controller
+    global motors, controller
 
     #initialize
     motors = ServoKit(channels=16)
 
-    currentSpeeds = list((0,) * motorCount)
-    targetSpeeds  = list((0,) * motorCount)
+    resetSpeeds()
 
-    #controller = InputDevice(devicePath)
-
+    controller = InputDevice(devicePath)
+    controller.grab()
 
 def deinit():
-    pass
+    global controller, motors
+    controller.ungrab()
+    controller.close()
 
 def run():
 
-    isMechanum = True
-    inputX, inputY = []
+    active_buttons = controller.active_keys()
 
-    iSum, iDiff = inputX + inputY, inputY - inputX
+    isMechanum = btn_1 in active_buttons
+    isStop = btn_2 in active_buttons
+    isSlow = btn_3 in active_buttons
 
-    setSpeed(MotorPos.FRONT_LEFT,  iSum if isMechanum else iDiff)
-    setSpeed(MotorPos.FRONT_RIGHT, iSum)
-    setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMechanum else iSum)
-    setSpeed(MotorPos.BACK_LEFT,   iDiff)
+    if isStop:
+        resetSpeeds()
+        
+    else:
+        inputX = getAbsVal(controller.absinfo(x_ax))
+        inputY = getAbsVal(controller.absinfo(y_ax))
+
+        iSum, iDiff = inputX + inputY, inputY - inputX
+
+        setSpeed(MotorPos.FRONT_LEFT,  iSum if isMechanum else iDiff, isSlow)
+        setSpeed(MotorPos.FRONT_RIGHT, iSum, isSlow)
+        setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMechanum else iSum, isSlow)
+        setSpeed(MotorPos.BACK_LEFT,   iDiff, isSlow)
 
     updateSpeeds()
 
@@ -81,12 +102,12 @@ def main():
         except BaseException as e:
             # catch real errors and print to stderr
             if not isinstance(e, StopRun):
-                sys.stderr.write(str(e))
+                print(e)
 
             break
 
         # ensure wait between execution cycles
-        time.sleep(10)
+        time.sleep(0.1)
 
     # de-init
     deinit()
