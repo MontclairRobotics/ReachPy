@@ -7,7 +7,7 @@ def maxThrottle(fast: bool) -> float:
     if fast:
         return 0.18
     else:
-        return 0.1
+        return 0.11
 """The maximum throttle for the motor"""
 
 motorCount: int = 4
@@ -38,7 +38,7 @@ def clampMag(val: float, min_val: float, max_val: float) -> float:
     n = clamp(abs(val), min_val, max_val)
     return math.copysign(1, val) * n
 
-speedPreservationFactor: float = 8
+speedPreservationFactor: float = 10
 """A factor which controls how much the speeds are preserved after
    a call to ease"""
 
