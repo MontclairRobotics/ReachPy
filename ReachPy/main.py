@@ -108,8 +108,11 @@ def run():
 
         iSum, iDiff = inputX + inputY, inputY - inputX
 
-        iSum *= abs(inputX) + 1
-        iDiff *= abs(inputX) + 1
+        if isMchn:
+            iSum *= abs(inputX) * 2 + 1
+            iDiff *= abs(inputX) * 2 + 1
+            iSum = clamp(iSum, -1, 1)
+            iDiff = clamp(iDiff, -1, 1)
 
         setSpeed(MotorPos.FRONT_LEFT, iSum if isMchn else iDiff, isFast)
         setSpeed(MotorPos.FRONT_RIGHT, iSum, isFast)
