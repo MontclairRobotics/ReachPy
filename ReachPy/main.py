@@ -94,8 +94,8 @@ def handleInputs():
     if not prevStop and prsStop:
         isStop = not isStop
 
-    #if not prevMchn and prsMchn:
-    #    isMchn = not isMchn
+    if not prevMchn and prsMchn:
+        isMchn = not isMchn
 
     if not prevFast and prsFast:
         isFast = not isFast
@@ -119,12 +119,10 @@ def run():
             iDiff = clamp(iDiff, -1, 1)
 
         setSpeed(MotorPos.FRONT_LEFT, iSum if isMchn else iDiff, isFast)
-        setSpeed(MotorPos.FRONT_RIGHT, iSum, isFast)
-        setSpeed(MotorPos.BACK_RIGHT,  iDiff if isMchn else iSum, isFast)
-        setSpeed(MotorPos.BACK_LEFT,   iDiff, isFast)
-
+        setSpeed(MotorPos.FRONT_RIGHT, iDiff if isMchn else iSum, isFast)
+        setSpeed(MotorPos.BACK_RIGHT, iSum, isFast)
+        setSpeed(MotorPos.BACK_LEFT, iDiff, isFast)
     updateSpeeds()
-
 
 def main():
     # initialize
