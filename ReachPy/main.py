@@ -18,7 +18,7 @@ controller: Optional[InputDevice] = None
 
 isFast: bool = False
 isMchn: bool = False
-isStop: bool = False
+isStop: bool = True
 
 prsFast: bool = False
 prsMchn: bool = False
