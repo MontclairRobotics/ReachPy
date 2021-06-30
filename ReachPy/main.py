@@ -110,18 +110,18 @@ def run():
         inputX = getAbsVal(controller.absinfo(x_ax))
         inputY = getAbsVal(controller.absinfo(y_ax))
 
-        iSum, iDiff = inputX + inputY, inputY - inputX
+        inputSum, inputDiff = inputX + inputY, inputY - inputX
 
-        if isMchn and abs(inputY) <= 0.5:
-            iSum *= abs(inputX) * 6 + 1
-            iDiff *= abs(inputX) * 6 + 1
-            iSum = clamp(iSum, -1, 1)
-            iDiff = clamp(iDiff, -1, 1)
+        # if isMchn and abs(inputY) <= 0.5:
+        #     inputSum *= abs(inputX) * 6 + 1
+        #     inputDiff *= abs(inputX) * 6 + 1
+        #     inputSum = clamp(inputSum, -1, 1)
+        #     inputDiff = clamp(inputDiff, -1, 1)
 
-        setSpeed(MotorPos.FRONT_LEFT, iSum if isMchn else iDiff, isFast)
-        setSpeed(MotorPos.FRONT_RIGHT, iDiff if isMchn else iSum, isFast)
-        setSpeed(MotorPos.BACK_RIGHT, iSum, isFast)
-        setSpeed(MotorPos.BACK_LEFT, iDiff, isFast)
+        setSpeed(MotorPos.FRONT_LEFT, inputDiff, isFast)
+        setSpeed(MotorPos.FRONT_RIGHT, inputSum, isFast)
+        setSpeed(MotorPos.BACK_LEFT, inputSum if isMchn else inputDiff, isFast)
+        setSpeed(MotorPos.BACK_RIGHT, inputDiff if isMchn else inputSum, isFast)
     updateSpeeds()
 
 def main():
