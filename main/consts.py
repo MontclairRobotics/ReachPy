@@ -3,6 +3,9 @@ from evdev import AbsInfo
 from enum import IntEnum, unique
 from typing import Dict, Tuple, List
 
+def debug(msg: str):
+    print("DEBUG MESSAGE: " + msg)
+
 def maxThrottle(fast: bool) -> float:
     if fast:
         return 0.18
@@ -45,9 +48,6 @@ speedPreservationFactor: float = 10
 def easeSpeed(current_speed: float, target_speed: float) -> float:
     """Ease the speed using an acceleration factor"""
     return current_speed + (target_speed - current_speed) / (speedPreservationFactor + 1)
-
-devicePath = '/dev/input/event0'
-"""Device path for input"""
 
 btn_1 = 288
 """The id of the first button"""

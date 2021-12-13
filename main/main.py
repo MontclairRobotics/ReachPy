@@ -1,12 +1,11 @@
 # imports
 import sys
 import evdev
-from evdev import InputDevice
+from evdev import InputDevice, list_devices
 from typing import Optional, List
 from adafruit_pca9685 import *
 from adafruit_servokit import *
 from consts import *
-
 
 # globals
 motors: Optional[ServoKit] = None
@@ -57,17 +56,34 @@ def updateSpeeds():
 class StopRun(BaseException):
     pass
 
+def setup_controller():
+    global controller
+    
+    devices: List[InputDevice] = [InputDevice(path) for path in list_devices()]
+    
+    def device_predicate(dev: InputDevice) -> bool:
+        return 'DragonRise Inc.' in dev.name and 'Joystick' in dev.name
+    
+    possible_controllers = list(filter(device_predicate, devices))
+    if len(possible_controllers) != 1:
+        debug('Controller not found')
+        sys.exit(1)
+    
+    debug('controller.path = ' + possible_controllers[0].path)
+    debug('controller.capabilities = ' + str(possible_controllers[0].capabilities()))
+    
+    controller = possible_controllers[0]
+    controller.grab()
+
 def init():
     #globals
-    global motors, controller
+    global motors
 
     #initialize
     motors = ServoKit(channels=16)
 
     resetSpeeds()
-
-    controller = InputDevice(devicePath)
-    controller.grab()
+    setup_controller()
 
 def deinit():
     global controller, motors
