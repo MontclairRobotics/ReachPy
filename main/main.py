@@ -1,168 +1,134 @@
-# imports
+#! /usr/bin/python3
+# used for startup
+
 import sys
+import time
 import evdev
 from evdev import InputDevice, list_devices
-from typing import Optional, List
+from typing import List
 from adafruit_pca9685 import *
 from adafruit_servokit import *
-from consts import *
 
-# globals
-motors: Optional[ServoKit] = None
+from classes import *
+from utils import *
 
-currentSpeeds: List[float] = []
-targetSpeeds: List[float] = []
+#######################################
+##              Program              ##
+#######################################
 
-controller: Optional[InputDevice] = None
+def setup_controller() -> InputDevice:
+    """Setup the controller."""
 
-isFast: bool = False
-isMchn: bool = False
-isStop: bool = True
-
-prsFast: bool = False
-prsMchn: bool = False
-prsStop: bool = False
-
-prevFast: bool = False
-prevMchn: bool = False
-prevStop: bool = False
-
-# functions
-def resetSpeeds():
-    global currentSpeeds, targetSpeeds
-    currentSpeeds = [0] * motorCount
-    targetSpeeds = [0] * motorCount
-
-def setSpeed(pos: MotorPos, throttle: float, slow: bool):
-    targetSpeeds[pos.value] = throttle * maxThrottle(slow)
-
-def updateSpeed(pos: MotorPos):
-    global currentSpeeds, targetSpeeds
-    currentSpeeds[pos.value] = easeSpeed(currentSpeeds[pos.value], targetSpeeds[pos.value])
-    
-    mul = -1
-    if pos == MotorPos.FRONT_LEFT or pos == MotorPos.BACK_LEFT:
-        mul = 1
-    
-    motors.continuous_servo[motorConfig[pos]].throttle = fixServoOuchie(mul * currentSpeeds[pos.value])
-
-def updateSpeeds():
-    updateSpeed(MotorPos.FRONT_LEFT)
-    updateSpeed(MotorPos.FRONT_RIGHT)
-    updateSpeed(MotorPos.BACK_LEFT)
-    updateSpeed(MotorPos.BACK_RIGHT)
-
-# execution
-class StopRun(BaseException):
-    pass
-
-def setup_controller():
-    global controller
-    
     devices: List[InputDevice] = [InputDevice(path) for path in list_devices()]
-    
+
     def device_predicate(dev: InputDevice) -> bool:
         return 'DragonRise Inc.' in dev.name and 'Joystick' in dev.name
-    
+
     possible_controllers = list(filter(device_predicate, devices))
     if len(possible_controllers) != 1:
-        debug('Controller not found')
-        sys.exit(1)
-    
+        raise IOError('Controller not found.')
+
     debug('controller.path = ' + possible_controllers[0].path)
     debug('controller.capabilities = ' + str(possible_controllers[0].capabilities()))
-    
+
     controller = possible_controllers[0]
-    controller.grab()
+    return controller
 
-def init():
-    #globals
-    global motors
+class Program:
 
-    #initialize
-    motors = ServoKit(channels=16)
+    def __init__(self):
 
-    resetSpeeds()
-    setup_controller()
+        self.motors = ServoKit(channels=16)
 
-def deinit():
-    global controller, motors
+        self.controller = setup_controller()
+        self.controller.grab()
 
-    resetSpeeds()
-    updateSpeeds()
+        self.isFast = ToggleStateMonitor(False)
+        self.isMchn = ToggleStateMonitor(False)
+        self.isStop = ToggleStateMonitor(True)
 
-    controller.ungrab()
-    controller.close()
+        self.currentSpeeds = {k : 0 for k in all_motor_pos}
+        self.targetSpeeds  = {k : 0 for k in all_motor_pos}
 
-def handleInputs():
-    global isMchn, isFast, isStop, prsMchn, prsFast, prsStop, prevMchn, prevFast, prevStop
+    def set_speed(self, pos, throttle, is_fast):
+        self.targetSpeeds[pos] = throttle * max_throttle(is_fast)
 
-    active_buttons = controller.active_keys()
+    def update_speeds(self):
+        for pos in all_motor_pos:
+            self.currentSpeeds[pos] = ease_speed(self.currentSpeeds[pos], self.targetSpeeds[pos])
 
-    prevMchn = prsMchn
-    prevStop = prsStop
-    prevFast = prsFast
+            spd = self.currentSpeeds[pos]
+            spd *= motor_factors[pos]
+            spd = adjust_speed_for_motors(spd)
 
-    prsMchn = btn_1 in active_buttons
-    prsStop = btn_2 in active_buttons
-    prsFast = btn_3 in active_buttons
+            self.set_motor_throttle(pos, spd)
 
-    if not prevStop and prsStop:
-        isStop = not isStop
+    def set_motor_throttle(self, pos, val):
+        self.motors.continuous_servo[motor_config[pos]].throttle = val
 
-    if not prevMchn and prsMchn:
-        isMchn = not isMchn
+    def stop_all(self):
+        for pos in all_motor_pos:
+            self.currentSpeeds[pos] = 0
+            self.targetSpeeds[pos]  = 0
 
-    if not prevFast and prsFast:
-        isFast = not isFast
+    def handle_inputs(self):
+        active_buttons = self.controller.active_keys()
 
-def run():
-    handleInputs()
+        self.isMchn.update(btn_mchn in active_buttons)
+        self.isStop.update(btn_stop in active_buttons)
+        self.isFast.update(btn_fast in active_buttons)
 
-    if isStop:
-        resetSpeeds()
-        
-    else:
-        inputX = getAbsVal(controller.absinfo(x_ax))
-        inputY = getAbsVal(controller.absinfo(y_ax))
+    def run(self):
+        while True:
+            self.handle_inputs()
 
-        inputSum, inputDiff = inputX + inputY, inputY - inputX
+            if self.isStop.value:
+                self.stop_all()
+            else:
+                inputX = remap_abs_info(self.controller.absinfo(x_axis))
+                inputY = remap_abs_info(self.controller.absinfo(y_axis))
 
-        # if isMchn and abs(inputY) <= 0.5:
-        #     inputSum *= abs(inputX) * 6 + 1
-        #     inputDiff *= abs(inputX) * 6 + 1
-        #     inputSum = clamp(inputSum, -1, 1)
-        #     inputDiff = clamp(inputDiff, -1, 1)
+                inputSum, inputDiff = inputX + inputY, inputX - inputY
 
-        setSpeed(MotorPos.FRONT_LEFT, inputDiff, isFast)
-        setSpeed(MotorPos.FRONT_RIGHT, inputSum, isFast)
-        setSpeed(MotorPos.BACK_LEFT, inputSum if isMchn else inputDiff, isFast)
-        setSpeed(MotorPos.BACK_RIGHT, inputDiff if isMchn else inputSum, isFast)
-    updateSpeeds()
+                # Code to adjust for mechanum; not needed but interesting :)
 
+                # if isMchn and abs(inputY) <= 0.5:
+                #     inputSum *= abs(inputX) * 6 + 1
+                #     inputDiff *= abs(inputX) * 6 + 1
+                #     inputSum = clamp(inputSum, -1, 1)
+                #     inputDiff = clamp(inputDiff, -1, 1)
+
+                isFast = self.isFast.value
+                isMchn = self.isMchn.value
+
+                self.set_speed(MotorPos.FRONT_LEFT, inputDiff, isFast)
+                self.set_speed(MotorPos.FRONT_RIGHT, inputSum, isFast)
+                self.set_speed(MotorPos.BACK_LEFT, inputSum if isMchn else inputDiff, isFast)
+                self.set_speed(MotorPos.BACK_RIGHT, inputDiff if isMchn else inputSum, isFast)
+
+            self.update_speeds()
+
+    def __del__(self):
+        self.controller.ungrab()
+        self.controller.close()
+
+
+#####################################
+##          Main function          ##
+#####################################
 def main():
-    # initialize
-    init()
+    prog = None
 
-    # execution loop
-    while True:
+    try:
+        prog = Program()
+        prog.run()
+    except Exception:
+        del prog
+        raise
 
-        try:
-            # attempt to run
-            run()
 
-        except BaseException as e:
-            # catch real errors and print to stderr
-            if not isinstance(e, StopRun):
-                print(e)
-
-            break
-
-        # ensure wait between execution cycles
-        time.sleep(0.02)
-
-    # de-init
-    deinit()
-
+###################################
+##        Main entrypoint        ##
+###################################
 if __name__ == '__main__':
     main()

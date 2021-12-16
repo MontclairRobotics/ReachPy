@@ -1,20 +1,11 @@
-import math
-from evdev import AbsInfo
 from enum import IntEnum, unique
-from typing import Dict, Tuple, List
 
-def debug(msg: str):
-    print("DEBUG MESSAGE: " + msg)
+#########################################
+##              Constants              ##
+#########################################
 
-def maxThrottle(fast: bool) -> float:
-    if fast:
-        return 0.18
-    else:
-        return 0.11
-"""The maximum throttle for the motor"""
-
-motorCount: int = 4
 """The number of motors"""
+motor_count: int = 4
 
 @unique
 class MotorPos(IntEnum):
@@ -24,51 +15,46 @@ class MotorPos(IntEnum):
     BACK_LEFT = 2
     BACK_RIGHT = 3
 
-motorConfig: Dict[MotorPos, int] = {
+"""All of the motor positions"""
+all_motor_pos: set[MotorPos] = {
+    MotorPos.FRONT_RIGHT,
+    MotorPos.FRONT_LEFT,
+    MotorPos.BACK_LEFT,
+    MotorPos.BACK_RIGHT
+}
+
+"""The motor configuration"""
+motor_config: dict[MotorPos, int] = {
     MotorPos.FRONT_RIGHT: 0,
     MotorPos.FRONT_LEFT: 1,
     MotorPos.BACK_RIGHT: 2,
     MotorPos.BACK_LEFT: 3
 }
-"""The motor configuration"""
 
-def clamp(val: float, min_val: float, max_val: float) -> float:
-    """Clamp a float value to a given range"""
-    return min(max(val, min_val), max_val)
+"""The factors which all motor speeds will be multiplied by (due to orientation)"""
+motor_factors: dict[MotorPos, float] = {
+    MotorPos.FRONT_LEFT: -1,
+    MotorPos.FRONT_RIGHT: 1,
+    MotorPos.BACK_LEFT:   1,
+    MotorPos.BACK_RIGHT: -1
+}
 
-def clampMag(val: float, min_val: float, max_val: float) -> float:
-    """Clamp a float value's magnitude to a given range"""
-    n = clamp(abs(val), min_val, max_val)
-    return math.copysign(1, val) * n
-
-speedPreservationFactor: float = 10
+speed_preservation_factor: float = 10
 """A factor which controls how much the speeds are preserved after
    a call to ease"""
 
-def easeSpeed(current_speed: float, target_speed: float) -> float:
+def ease_speed(current_speed: float, target_speed: float) -> float:
     """Ease the speed using an acceleration factor"""
-    return current_speed + (target_speed - current_speed) / (speedPreservationFactor + 1)
+    return current_speed + (target_speed - current_speed) / (speed_preservation_factor + 1)
 
-btn_1 = 288
-"""The id of the first button"""
-btn_2 = 290
-"""The id of the second button"""
-btn_3 = 289
-"""The id of the thirst button"""
+"""The id of the mechanum button toggle."""
+btn_mchn = 288
+"""The id of the stop button toggle."""
+btn_stop = 290
+"""The id of the fast button toggle."""
+btn_fast = 289
 
-x_ax = 0
 """The x-axis id"""
-y_ax = 1
+x_axis = 0
 """The y-axis id"""
-
-def remap(val: float, basemin: float, basemax: float, newmin: float, newmax: float) -> float:
-    """Take a float value and re-map it into a new range given its expected range"""
-    return ((val - basemin) / (basemax - basemin)) * (newmax - newmin) + newmin
-
-def getAbsVal(absv: AbsInfo) -> float:
-    """Do the thing"""
-    return remap(absv.value, absv.min, absv.max, -1, 1)
-
-def fixServoOuchie(spd: float) -> float:
-    """i hate everythinggggggg"""
-    return spd + 0.125
+y_axis = 1
