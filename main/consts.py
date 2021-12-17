@@ -4,6 +4,11 @@ from enum import IntEnum, unique
 ##              Constants              ##
 #########################################
 
+"""The maximum throttle allowed in fast mode"""
+max_throttle_fast: float = 0.25
+"""The maximum throttle allowed in non-fast mode"""
+max_throttle_slow: float = 0.15
+
 """The number of motors"""
 motor_count: int = 4
 
@@ -39,13 +44,9 @@ motor_factors: dict[MotorPos, float] = {
     MotorPos.BACK_RIGHT: -1
 }
 
-speed_preservation_factor: float = 10
+sec_to_ease_one_unit: float = 0.5
 """A factor which controls how much the speeds are preserved after
    a call to ease"""
-
-def ease_speed(current_speed: float, target_speed: float) -> float:
-    """Ease the speed using an acceleration factor"""
-    return current_speed + (target_speed - current_speed) / (speed_preservation_factor + 1)
 
 """The id of the mechanum button toggle."""
 btn_mchn = 288

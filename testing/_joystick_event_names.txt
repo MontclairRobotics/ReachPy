@@ -1,0 +1,16 @@
+event at 1624471588.252435, code 288, type 01, val 01 ::: key event at 1624471588.252435, 288 (['BTN_JOYSTICK', 'BTN_TRIGGER']), down
+event at 1624471588.684507, code 288, type 01, val 00 ::: key event at 1624471588.684507, 288 (['BTN_JOYSTICK', 'BTN_TRIGGER']), up
+event at 1624471589.732676, code 290, type 01, val 01 ::: key event at 1624471589.732676, 290 (BTN_THUMB2), down
+event at 1624471590.348812, code 290, type 01, val 00 ::: key event at 1624471590.348812, 290 (BTN_THUMB2), up
+event at 1624471591.020929, code 289, type 01, val 01 ::: key event at 1624471591.020929, 289 (BTN_THUMB), down
+event at 1624471591.284969, code 289, type 01, val 00 ::: key event at 1624471591.284969, 289 (BTN_THUMB), up
+pi@raspberrypi:/tmp $ grep ABS_[XY] inputfile.txt
+event at 1624471592.725168, code 01, type 03, val 00 ::: absolute axis event at 1624471592.725168, ABS_Y 
+event at 1624471593.645318, code 01, type 03, val 127 ::: absolute axis event at 1624471593.645318, ABS_Y 
+event at 1624471593.949361, code 01, type 03, val 255 ::: absolute axis event at 1624471593.949361, ABS_Y 
+event at 1624471594.341427, code 01, type 03, val 127 ::: absolute axis event at 1624471594.341427, ABS_Y 
+event at 1624471594.805544, code 00, type 03, val 00 ::: absolute axis event at 1624471594.805544, ABS_X 
+event at 1624471595.717662, code 00, type 03, val 127 ::: absolute axis event at 1624471595.717662, ABS_X 
+event at 1624471595.741699, code 00, type 03, val 255 ::: absolute axis event at 1624471595.741699, ABS_X 
+event at 1624471596.925850, code 00, type 03, val 127 ::: absolute axis event at 1624471596.925850, ABS_X 
+

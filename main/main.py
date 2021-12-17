@@ -50,12 +50,14 @@ class Program:
         self.currentSpeeds = {k : 0 for k in all_motor_pos}
         self.targetSpeeds  = {k : 0 for k in all_motor_pos}
 
+        self.timeMonitor = TimeMonitor()
+
     def set_speed(self, pos, throttle, is_fast):
         self.targetSpeeds[pos] = throttle * max_throttle(is_fast)
 
     def update_speeds(self):
         for pos in all_motor_pos:
-            self.currentSpeeds[pos] = ease_speed(self.currentSpeeds[pos], self.targetSpeeds[pos])
+            self.currentSpeeds[pos] = ease_speed(self.currentSpeeds[pos], self.targetSpeeds[pos], self.timeMonitor.delta_secs())
 
             spd = self.currentSpeeds[pos]
             spd *= motor_factors[pos]
@@ -80,6 +82,7 @@ class Program:
 
     def run(self):
         while True:
+            self.timeMonitor.update()
             self.handle_inputs()
 
             if self.isStop.value:
@@ -101,10 +104,10 @@ class Program:
                 isFast = self.isFast.value
                 isMchn = self.isMchn.value
 
-                self.set_speed(MotorPos.FRONT_LEFT, inputDiff, isFast)
-                self.set_speed(MotorPos.FRONT_RIGHT, inputSum, isFast)
-                self.set_speed(MotorPos.BACK_LEFT, inputSum if isMchn else inputDiff, isFast)
-                self.set_speed(MotorPos.BACK_RIGHT, inputDiff if isMchn else inputSum, isFast)
+                self.set_speed(MotorPos.FRONT_LEFT,  inputDiff,                         isFast)
+                self.set_speed(MotorPos.FRONT_RIGHT, inputSum,                          isFast)
+                self.set_speed(MotorPos.BACK_LEFT,   inputSum if isMchn else inputDiff, isFast)
+                self.set_speed(MotorPos.BACK_RIGHT,  inputDiff if isMchn else inputSum, isFast)
 
             self.update_speeds()
 
